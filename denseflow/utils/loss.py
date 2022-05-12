@@ -108,6 +108,28 @@ def dataset_iwbo_bpd(model, data_loader, k, device, double=False, kbs=None, verb
             if verbose: print('{}/{}'.format(i+1, len(data_loader)), bpd/count, end='\r')
     return bpd / count
 
+def dataset_save_latent(model, data_loader, device, path, train, double=False, verbose=True):
+    with torch.no_grad():
+        bpd = 0.0
+        count = 0
+        for i, x in enumerate(data_loader):
+            if double: x = x.double()
+            x = x.to(device)
+            x, ldj = model.z_ldj(x)
+            for batch_index in range(x.shape[0]):
+                
+                name = path 
+                name += 'train/' if train else 'eval/' 
+                name += 'image_{}_{}.pt'.format(i, batch_index)
+                torch.save(x[batch_index].cpu(), name)
+                id_path = path 
+                id_path += 'train/' if train else 'eval/'
+                with open(id_path+'id.txt', 'a') as f:
+                    f.write(name+',\t'+str(ldj[batch_index].cpu().numpy())+'\n')
+            count += len(x)
+            if verbose: print('{}/{} for {}'.format(i+1, len(data_loader), 'train' if train else 'eval'), bpd/count, end='\r')
+
+
 
 def mc_bpd_batched(model, x, k, kbs):
     assert k % kbs == 0

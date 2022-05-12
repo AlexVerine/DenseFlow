@@ -40,6 +40,17 @@ class Flow(Distribution):
             return x, log_prob
         return log_prob
 
+    def z_ldj(self, x):
+        log_prob = torch.zeros(x.shape[0], device=x.device)
+        for transform in self.transforms:
+            x, ldj = transform(x)
+            log_prob += ldj
+        log_prob = log_prob / self.coef
+
+        return x, log_prob
+
+
+
     def sample(self, num_samples):
         z = self.base_dist.sample(num_samples)
         for transform in reversed(self.transforms):

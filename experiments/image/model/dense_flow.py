@@ -68,3 +68,11 @@ class DenseFlow(Flow):
                                        transforms=transforms, coef=coef)
         self.out_shape = current_shape
 
+    def z_ldj(self, x):
+        log_prob = torch.zeros(x.shape[0], device=x.device)
+        for transform in self.transforms:
+            x, ldj = transform(x)
+            log_prob += ldj
+        log_prob = log_prob / self.coef
+
+        return x, log_prob
